@@ -7,17 +7,60 @@
 //
 
 import UIKit
+import CoreData
 
 class TableViewController: UITableViewController {
 
+    var messages: [Message] = []
+    let dataStore = DataStore()
+    
+    static let dateFormatter = NSDateFormatter()
+    
+    // MARK: Actions
+    
+    @IBAction func sort() {
+        let sort = NSSortDescriptor(key: "createdAt", ascending: false)
+        messages = (messages as NSArray).sortedArrayUsingDescriptors([sort]) as! [Message]
+        
+        tableView.reloadData()
+    }
+    
+    // MARK: Table
+    
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return messages.count
+    }
+    
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cellId = "CellId"
+        let cell = tableView.dequeueReusableCellWithIdentifier(cellId, forIndexPath: indexPath)
+        
+        let message = messages[indexPath.row];
+        
+        if let content = message.content {
+            cell.textLabel?.text = content
+        }
+        
+        if let date = message.createdAt {
+            cell.detailTextLabel?.text = "\(date)"
+             cell.detailTextLabel?.text = TableViewController.dateFormatter.stringFromDate(date)
+        }
+        
+        return cell
+    }
+    
+    // MARK: View
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+         TableViewController.dateFormatter.dateFormat = "h:mm a"
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        dataStore.fetchData()
+        messages = dataStore.messages
         
+        tableView.reloadData()
     }
 }
